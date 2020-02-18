@@ -1,5 +1,6 @@
 import uuid from 'uuid';
 import dataBase from '../firebase/firebase';
+import firebase, { database } from 'firebase';
 
 // Before Firebase:
 // component calls action generator
@@ -57,3 +58,28 @@ export const editExpense = (id, updates) => ({
   id,
   updates,
 });
+
+// SET_EXPENSES
+export const setExpenses = expenses => ({
+  type: 'SET_EXPENSES',
+  expenses,
+});
+
+export const startSetExpenses = () => {
+  return dispatch => {
+    const db = firebase.database().ref('expenses');
+
+    return db.once('value').then(snapshot => {
+      const expenses = [];
+
+      snapshot.forEach(childSnapshot => {
+        expenses.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val(),
+        });
+      });
+
+      dispatch(setExpenses(expenses));
+    });
+  };
+};
