@@ -52,6 +52,19 @@ export const removeExpense = ({ id } = {}) => ({
   id,
 });
 
+// START_REMOVE_EXPENSE
+export const startRemoveExpense = ({ id } = {}) => {
+  return dispatch => {
+    return firebase
+      .database()
+      .ref(`expenses/${id}`)
+      .remove()
+      .then(() => {
+        dispatch(removeExpense({ id }));
+      });
+  };
+};
+
 // EDIT_EXPENSE
 export const editExpense = (id, updates) => ({
   type: 'EDIT_EXPENSE',
@@ -67,19 +80,21 @@ export const setExpenses = expenses => ({
 
 export const startSetExpenses = () => {
   return dispatch => {
-    const db = firebase.database().ref('expenses');
+    return firebase
+      .database()
+      .ref('expenses')
+      .once('value')
+      .then(snapshot => {
+        const expenses = [];
 
-    return db.once('value').then(snapshot => {
-      const expenses = [];
-
-      snapshot.forEach(childSnapshot => {
-        expenses.push({
-          id: childSnapshot.key,
-          ...childSnapshot.val(),
+        snapshot.forEach(childSnapshot => {
+          expenses.push({
+            id: childSnapshot.key,
+            ...childSnapshot.val(),
+          });
         });
-      });
 
-      dispatch(setExpenses(expenses));
-    });
+        dispatch(setExpenses(expenses));
+      });
   };
 };
